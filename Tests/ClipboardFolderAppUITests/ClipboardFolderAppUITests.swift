@@ -13,8 +13,8 @@ final class ClipboardFolderAppUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.wait(for: .runningForeground, timeout: 10),
-            "Expected ClipDisk app process to launch in foreground"
+            app.wait(for: .runningBackground, timeout: 10),
+            "Expected ClipDisk app process to launch in background"
         )
         XCTAssertTrue(app.menuBars.firstMatch.exists)
     }

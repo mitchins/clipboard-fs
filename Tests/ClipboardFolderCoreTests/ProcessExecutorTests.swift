@@ -26,6 +26,18 @@ final class ProcessExecutorTests: XCTestCase {
         XCTAssertEqual(result.output, "ok")
     }
 
+    func testRunWithTimeoutCompletesSuccessfully() throws {
+        let executor = SystemProcessExecutor()
+        let result = try executor.run(
+            executablePath: "/bin/echo",
+            arguments: ["ok"],
+            timeout: 5.0
+        )
+
+        XCTAssertEqual(result.exitCode, 0)
+        XCTAssertEqual(result.output, "ok")
+    }
+
     func testRunWithTimeoutThrowsTimedOutError() {
         let executor = SystemProcessExecutor()
 

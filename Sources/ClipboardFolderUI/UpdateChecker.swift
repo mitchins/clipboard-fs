@@ -39,8 +39,8 @@ final class UpdateChecker: ObservableObject {
         Task {
             do {
                 let release = try await fetchLatestRelease()
-                let latest = release.tagName.trimmingCharacters(in: .init(charactersIn: "v"))
-                let clean = current.trimmingCharacters(in: .init(charactersIn: "v"))
+                let latest = normalizeVersion(release.tagName)
+                let clean = normalizeVersion(current)
                 if latest == clean {
                     state = .upToDate(version: current)
                 } else {
@@ -50,6 +50,10 @@ final class UpdateChecker: ObservableObject {
                 state = .failed(error.localizedDescription)
             }
         }
+    }
+
+    private func normalizeVersion(_ value: String) -> String {
+        value.hasPrefix("v") ? String(value.dropFirst()) : value
     }
 }
 
