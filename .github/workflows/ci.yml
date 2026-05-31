@@ -36,7 +36,7 @@ jobs:
       - name: Test with coverage
         run: swift test --enable-code-coverage --filter "ClipboardFolderCoreTests|ClipboardFolderUITests|ClipboardFolderIntegrationTests"
       - name: App UI tests
-        run: xcodebuild test -scheme ClipboardFolder -destination "platform=macOS" -only-testing:ClipboardFolderAppUITests
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -only-testing:ClipboardFolderAppUITests
       - name: Generate coverage XML
         run: |
           PROFDATA=$(find .build -name "default.profdata" | head -1)
@@ -82,7 +82,7 @@ jobs:
       - name: Unit tests
         run: swift test --filter "ClipboardFolderCoreTests|ClipboardFolderUITests|ClipboardFolderIntegrationTests"
       - name: App UI tests
-        run: xcodebuild test -scheme ClipboardFolder -destination "platform=macOS" -only-testing:ClipboardFolderAppUITests
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -only-testing:ClipboardFolderAppUITests
 
   # Runs on both push and PR:
   #   push to main  → waits for lint + test, scans with coverage
@@ -90,11 +90,12 @@ jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, test-pr]
     if: |
       always() &&
       needs.lint.result == 'success' &&
-      (needs.test.result == 'success' || needs.test.result == 'skipped')
+      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+      (needs['test-pr'].result == 'success' || needs['test-pr'].result == 'skipped')
     steps:
       - uses: actions/checkout@v4
         with:
