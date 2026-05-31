@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test with coverage
-        run: swift test --enable-code-coverage --filter "ClipboardFolderCoreTests|ClipboardFolderUITests"
+        run: swift test --enable-code-coverage --filter "ClipboardFolderCoreTests|ClipboardFolderUITests|ClipboardFolderIntegrationTests"
       - name: Generate coverage XML
         run: |
           PROFDATA=$(find .build -name "default.profdata" | head -1)
@@ -69,7 +69,7 @@ jobs:
       - name: Build
         run: swift build
       - name: Unit tests
-        run: swift test --filter "ClipboardFolderCoreTests|ClipboardFolderUITests"
+        run: swift test --filter "ClipboardFolderCoreTests|ClipboardFolderUITests|ClipboardFolderIntegrationTests"
 
   # Runs on both push and PR:
   #   push to main  → waits for lint + test, scans with coverage

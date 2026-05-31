@@ -43,6 +43,7 @@ public final class AppState: ObservableObject {
     @Published public var usedBytes: Int64 = 0
     @Published public var launchAtLogin = false
     @Published public var errorMessage: String?
+    public var mountPoint: String { ramDiskManager.mountPoint }
 
     static let version: String = {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
@@ -73,8 +74,27 @@ public final class AppState: ObservableObject {
     private var volumeHealthTimer: Timer?
     private var volumeRecoveryDialogController: VolumeRecoveryDialogController?
 
+    private struct RuntimeOptions {
+        let volumeName: String
+        let sizeInMB: Int
+        let shouldAutoStartup: Bool
+
+        static func fromEnvironment(_ environment: [String: String]) -> RuntimeOptions {
+            let rawVolumeName = environment["CLIPDISK_VOLUME_NAME"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let parsedSize = Int(environment["CLIPDISK_VOLUME_SIZE_MB"] ?? "")
+            let shouldSkipStartup = environment["CLIPDISK_SKIP_STARTUP"] == "1"
+            let resolvedVolumeName = rawVolumeName.flatMap { $0.isEmpty ? nil : $0 } ?? "Clipboard"
+            return RuntimeOptions(
+                volumeName: resolvedVolumeName,
+                sizeInMB: max(1, parsedSize ?? 20),
+                shouldAutoStartup: !shouldSkipStartup
+            )
+        }
+    }
+
     public init() {
-        let rdm = RAMDiskManager()
+        let options = RuntimeOptions.fromEnvironment(ProcessInfo.processInfo.environment)
+        let rdm = RAMDiskManager(volumeName: options.volumeName, sizeInMB: options.sizeInMB)
         self.ramDiskManager = rdm
         self.clipboardMonitor = ClipboardMonitor()
         self.contentWriter = ContentWriter(volumePath: rdm.mountPoint)
@@ -92,8 +112,10 @@ public final class AppState: ObservableObject {
 
         installVolumeRecoverySuccessObserver()
 
-        Task { @MainActor in
-            self.startup()
+        if options.shouldAutoStartup {
+            Task { @MainActor in
+                self.startup()
+            }
         }
     }
 

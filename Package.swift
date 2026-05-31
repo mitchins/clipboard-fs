@@ -5,6 +5,20 @@ import PackageDescription
 let package = Package(
     name: "ClipboardFolder",
     platforms: [.macOS(.v14)],
+    products: [
+        .library(
+            name: "ClipboardFolderCore",
+            targets: ["ClipboardFolderCore"]
+        ),
+        .library(
+            name: "ClipboardFolderUI",
+            targets: ["ClipboardFolderUI"]
+        ),
+        .executable(
+            name: "ClipboardFolder",
+            targets: ["ClipboardFolder"]
+        ),
+    ],
     targets: [
         .target(
             name: "ClipboardFolderCore",
@@ -43,4 +57,3 @@ let package = Package(
         ),
     ]
 )
-

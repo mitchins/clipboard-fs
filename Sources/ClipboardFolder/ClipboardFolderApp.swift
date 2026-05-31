@@ -115,5 +115,6 @@ struct ClipboardFolderApp: App {
         }
 
         return bundle.url(forResource: candidate, withExtension: "png")
+        return bundle.url(forResource: candidate, withExtension: "png")
     }
 }
