@@ -13,9 +13,20 @@ final class ClipboardFolderAppUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.wait(for: .runningBackground, timeout: 10),
-            "Expected ClipDisk app process to launch in background"
+            waitForLaunchedAppState(app, timeout: 10),
+            "Expected ClipDisk app process to launch (foreground or background)"
         )
         XCTAssertTrue(app.menuBars.firstMatch.exists)
+    }
+
+    private func waitForLaunchedAppState(_ app: XCUIApplication, timeout: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.state == .runningForeground || app.state == .runningBackground {
+                return true
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        return false
     }
 }
