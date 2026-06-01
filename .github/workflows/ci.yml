@@ -60,7 +60,7 @@ jobs:
         run: xcodegen generate
       - name: Run Xcode tests with coverage
         working-directory: ${{ github.workspace }}
-        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData -only-testing:ClipboardFolderUITests -only-testing:ClipboardFolderAppUITests
       - name: Generate coverage XML
         run: |
           python3 Scripts/xccov_to_sonarqube_xml.py TestResults.xcresult coverage.xml
@@ -102,7 +102,7 @@ jobs:
         run: xcodegen generate
       - name: App UI tests
         working-directory: ${{ github.workspace }}
-        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData -only-testing:ClipboardFolderAppUITests
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData -only-testing:ClipboardFolderUITests -only-testing:ClipboardFolderAppUITests
       - name: Generate coverage XML
         run: |
           python3 Scripts/xccov_to_sonarqube_xml.py TestResults.xcresult coverage.xml
