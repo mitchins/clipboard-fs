@@ -19,9 +19,11 @@ public struct SettingsView: View {
                 Text("ClipDisk")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .accessibilityIdentifier("settings.appName")
                 Text("Version \(AppState.versionDisplay)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("settings.version")
             }
             .padding(.top, 24)
             .padding(.bottom, 16)
@@ -34,6 +36,7 @@ public struct SettingsView: View {
                 Button("Check for Updates") {
                     updater.check(current: AppState.version)
                 }
+                .accessibilityIdentifier("settings.checkUpdates")
                 .disabled({
                     if case .checking = updater.state { return true }
                     return false
@@ -51,6 +54,7 @@ public struct SettingsView: View {
                     get: { appState.launchAtLogin },
                     set: { _ in appState.toggleLaunchAtLogin() }
                 ))
+                .accessibilityIdentifier("settings.launchAtLogin")
                 .labelsHidden()
             }
             .padding(.horizontal, 16)
@@ -66,6 +70,7 @@ public struct SettingsView: View {
             .padding(.vertical, 12)
         }
         .frame(width: 300)
+        .accessibilityIdentifier("settings.root")
     }
 
     @ViewBuilder

@@ -34,6 +34,52 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: com.mitchellcurrie.clipboard-folder
       CODE_SIGN_STYLE: Automatic
       # Team ID is not hardcoded
+  ClipboardFolderCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/ClipboardFolderCoreTests
+    dependencies:
+      - package: ClipboardFolder
+        product: ClipboardFolderCore
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      CODE_SIGNING_ALLOWED: NO
+  ClipboardFolderIntegrationTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/ClipboardFolderIntegrationTests
+    dependencies:
+      - package: ClipboardFolder
+        product: ClipboardFolderCore
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      CODE_SIGNING_ALLOWED: NO
+  ClipboardFolderUITests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/ClipboardFolderUITests
+    dependencies:
+      - package: ClipboardFolder
+        product: ClipboardFolderUI
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      CODE_SIGNING_ALLOWED: NO
+  ClipboardFolderAppUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/ClipboardFolderAppUITests
+    dependencies:
+      - target: ClipboardFolderApp
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
 schemes:
   ClipboardFolder:
     build:
@@ -43,6 +89,14 @@ schemes:
       config: Debug
       targets:
         - ClipboardFolderApp
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - ClipboardFolderCoreTests
+        - ClipboardFolderIntegrationTests
+        - ClipboardFolderUITests
+        - ClipboardFolderAppUITests
     archive:
       config: Release
       targets:

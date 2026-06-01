@@ -1,5 +1,7 @@
+import AppKit
 import ClipboardFolderCore
 import XCTest
+import SwiftUI
 @testable import ClipboardFolderUI
 
 // MARK: - Mock
@@ -125,6 +127,15 @@ final class AppStateTests: XCTestCase {
         state.handleContent(.image(Data([0x01]), suggestedName: "a.png"))
         XCTAssertEqual(state.fileCount, 2)
         XCTAssertEqual(state.usedBytes, 1_024)
+    }
+
+    func test_settingsViewBodyBuilds() {
+        let host = NSHostingView(
+            rootView: SettingsView(appIcon: NSImage(size: NSSize(width: 64, height: 64)))
+                .environmentObject(state)
+        )
+        host.frame = NSRect(x: 0, y: 0, width: 300, height: 400)
+        host.layoutSubtreeIfNeeded()
     }
 
     // MARK: clearVolume
