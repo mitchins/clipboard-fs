@@ -106,23 +106,28 @@ def collect_line_hits(archive_path: str, file_path: str) -> list[tuple[int, bool
     return line_hits
 
 
-def convert(xcresult_path: str, xml_path: str) -> None:
-    archive_ids = load_archive_ids(xcresult_path)
-
-    coverage_by_file: dict[str, list[tuple[int, bool]]] = {}
+def convert(xcresult_paths: list[str], xml_path: str) -> None:
+    coverage_by_file: dict[str, dict[int, bool]] = {}
     with tempfile.TemporaryDirectory() as temp_dir:
-        archive_dir = os.path.join(temp_dir, "coverage.xccovarchive")
-        os.makedirs(archive_dir, exist_ok=True)
-        export_archives(xcresult_path, archive_ids, archive_dir)
+        archive_index = 0
+        for xcresult_path in xcresult_paths:
+            for archive_id in load_archive_ids(xcresult_path):
+                archive_dir = os.path.join(temp_dir, f"coverage-{archive_index}.xccovarchive")
+                os.makedirs(archive_dir, exist_ok=True)
+                export_archives(xcresult_path, [archive_id], archive_dir)
 
-        for file_path in list_files(archive_dir):
-            report_path = normalize_report_path(file_path)
-            if not report_path.startswith("Sources/"):
-                continue
+                for file_path in list_files(archive_dir):
+                    report_path = normalize_report_path(file_path)
+                    if not report_path.startswith("Sources/"):
+                        continue
 
-            line_hits = collect_line_hits(archive_dir, file_path)
-            if line_hits:
-                coverage_by_file[report_path] = line_hits
+                    line_hits = collect_line_hits(archive_dir, file_path)
+                    if line_hits:
+                        file_coverage = coverage_by_file.setdefault(report_path, {})
+                        for line_number, covered in line_hits:
+                            file_coverage[line_number] = file_coverage.get(line_number, False) or covered
+
+                archive_index += 1
 
     if not coverage_by_file:
         raise RuntimeError("No source coverage data found under Sources/")
@@ -133,7 +138,7 @@ def convert(xcresult_path: str, xml_path: str) -> None:
 
     for path in sorted(coverage_by_file):
         file_elem = ET.SubElement(root, "file", path=path)
-        for line_number, covered in coverage_by_file[path]:
+        for line_number, covered in sorted(coverage_by_file[path].items()):
             ET.SubElement(
                 file_elem,
                 "lineToCover",
@@ -154,8 +159,18 @@ def convert(xcresult_path: str, xml_path: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        raise SystemExit("Usage: xccov_to_sonarqube_xml.py <xcresult-path> [output-path]")
+        raise SystemExit(
+            "Usage: xccov_to_sonarqube_xml.py <coverage.xml> <xcresult-path> [<xcresult-path> ...]"
+        )
 
-    xcresult = sys.argv[1]
-    output = sys.argv[2] if len(sys.argv) > 2 else "coverage.xml"
-    convert(xcresult, output)
+    if sys.argv[1].endswith(".xcresult"):
+        xcresults = [sys.argv[1]]
+        output = sys.argv[2] if len(sys.argv) > 2 else "coverage.xml"
+    else:
+        output = sys.argv[1]
+        xcresults = sys.argv[2:]
+
+    if not xcresults:
+        raise SystemExit("Expected at least one .xcresult path")
+
+    convert(xcresults, output)

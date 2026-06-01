@@ -58,12 +58,15 @@ jobs:
       - name: Generate Xcode project
         working-directory: ${{ github.workspace }}
         run: xcodegen generate
-      - name: Run Xcode tests with coverage
+      - name: Run ClipboardFolderUITests with coverage
         working-directory: ${{ github.workspace }}
-        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData -only-testing:ClipboardFolderUITests -only-testing:ClipboardFolderAppUITests
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults-UITests.xcresult -derivedDataPath DerivedData-UITests -only-testing:ClipboardFolderUITests
+      - name: Run ClipboardFolderAppUITests with coverage
+        working-directory: ${{ github.workspace }}
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults-AppUITests.xcresult -derivedDataPath DerivedData-AppUITests -only-testing:ClipboardFolderAppUITests
       - name: Generate coverage XML
         run: |
-          python3 Scripts/xccov_to_sonarqube_xml.py TestResults.xcresult coverage.xml
+          python3 Scripts/xccov_to_sonarqube_xml.py coverage.xml TestResults-UITests.xcresult TestResults-AppUITests.xcresult
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           ET.parse("coverage.xml")
@@ -100,12 +103,15 @@ jobs:
       - name: Generate Xcode project
         working-directory: ${{ github.workspace }}
         run: xcodegen generate
-      - name: App UI tests
+      - name: Run ClipboardFolderUITests with coverage
         working-directory: ${{ github.workspace }}
-        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData -only-testing:ClipboardFolderUITests -only-testing:ClipboardFolderAppUITests
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults-UITests.xcresult -derivedDataPath DerivedData-UITests -only-testing:ClipboardFolderUITests
+      - name: Run ClipboardFolderAppUITests with coverage
+        working-directory: ${{ github.workspace }}
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults-AppUITests.xcresult -derivedDataPath DerivedData-AppUITests -only-testing:ClipboardFolderAppUITests
       - name: Generate coverage XML
         run: |
-          python3 Scripts/xccov_to_sonarqube_xml.py TestResults.xcresult coverage.xml
+          python3 Scripts/xccov_to_sonarqube_xml.py coverage.xml TestResults-UITests.xcresult TestResults-AppUITests.xcresult
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           ET.parse("coverage.xml")
