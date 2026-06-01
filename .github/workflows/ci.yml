@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: SwiftLint
         run: |
           docker run --rm \
@@ -26,26 +28,20 @@ jobs:
             ghcr.io/realm/swiftlint:latest \
             swiftlint lint --reporter github-actions-logging
 
-  # Runs on main push only — generates lcov coverage artifact for Sonar
+  # Runs on main push only — generates lcov coverage for Codecov and Xcode coverage XML for Sonar
   test:
     name: Test (macOS)
     runs-on: macos-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Test with coverage
         run: swift test --enable-code-coverage --filter "ClipboardFolderCoreTests|ClipboardFolderUITests|ClipboardFolderIntegrationTests"
-      - name: Install XcodeGen
-        run: brew install xcodegen
-      - name: Generate Xcode project
-        working-directory: ${{ github.workspace }}
-        run: xcodegen generate
-      - name: App UI tests
-        working-directory: ${{ github.workspace }}
-        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -only-testing:ClipboardFolderAppUITests
-      - name: Generate coverage XML
+      - name: Generate lcov coverage
         run: |
-          PROFDATA=$(find .build -name "default.profdata" | head -1)
+          PROFDATA=$(find .build -name "default.profdata" -o -name "Coverage.profdata" | head -1)
           TESTBIN=$(find .build -path "*.xctest/Contents/MacOS/ClipboardFolderPackageTests" | head -1)
           if [ -z "$PROFDATA" ] || [ -z "$TESTBIN" ]; then
             echo "Missing coverage inputs: PROFDATA=$PROFDATA TESTBIN=$TESTBIN"
@@ -57,7 +53,17 @@ jobs:
             "$TESTBIN" \
             --ignore-filename-regex='\.build|Tests' \
             > coverage.lcov
-          python3 Scripts/lcov_to_sonarqube_xml.py coverage.lcov coverage.xml
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: ${{ github.workspace }}
+        run: xcodegen generate
+      - name: Run Xcode tests with coverage
+        working-directory: ${{ github.workspace }}
+        run: xcodebuild test -project ClipboardFolder.xcodeproj -scheme ClipboardFolder -destination "platform=macOS" -enableCodeCoverage YES -resultBundlePath TestResults.xcresult -derivedDataPath DerivedData
+      - name: Generate coverage XML
+        run: |
+          python3 Scripts/xccov_to_sonarqube_xml.py TestResults.xcresult coverage.xml
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           ET.parse("coverage.xml")
@@ -83,6 +89,8 @@ jobs:
     environment: macos-tests
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Build
         run: swift build
       - name: Unit tests
@@ -111,6 +119,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Download coverage artifact (main only)
         if: needs.test.result == 'success'
